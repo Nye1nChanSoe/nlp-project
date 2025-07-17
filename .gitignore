@@ -1,2 +1,5 @@
 .venv
 /env
+news.db
+__pycache__/
+.DS_Store
