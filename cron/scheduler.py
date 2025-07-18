@@ -4,6 +4,7 @@ from db.database import insert_article, mark_url_seen, get_unseen_links
 from scrape.utils import sleep_random
 import os
 import random
+from model.prediction import predict
 
 
 def scrape_article_every_minute():
@@ -11,12 +12,14 @@ def scrape_article_every_minute():
     while True:
         print("-- job running --")
         BASE_URL = os.getenv("REUTERS_BASE")
-        all_links = get_article_links(BASE_URL, limit=10)
+        all_links = get_article_links(BASE_URL, limit=30)
         new_links = get_unseen_links(all_links, limit=10)
 
         for url in new_links:
             try:
                 article = scrape_article(url)
+                predicted_category = predict(article["content"])
+                article["predicted_category"] = predicted_category
                 insert_article(article)
                 mark_url_seen(url)
                 print(f"saved: {article['title']}")

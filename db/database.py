@@ -33,10 +33,15 @@ def insert_article(article):
         try:
             conn.execute(
                 """
-                INSERT INTO articles (url, title, content)
-                VALUES (?, ?, ?)
+                INSERT INTO articles (url, title, content, predicted_category)
+                VALUES (?, ?, ?, ?)
             """,
-                (article["url"], article["title"], article["content"]),
+                (
+                    article["url"],
+                    article["title"],
+                    article["content"],
+                    article["predicted_category"],
+                ),
             )
         except sqlite3.IntegrityError:
             # Duplicate URL = already scraped
@@ -69,9 +74,7 @@ def get_unseen_links(all_links: list, limit: int = 5):
 
 def get_all_articles():
     with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.execute(
-            "SELECT id, url, title, predicted_category FROM articles ORDER BY created_at DESC"
-        )
+        cursor = conn.execute("SELECT * FROM articles ORDER BY created_at DESC")
         return cursor.fetchall()
 
 
