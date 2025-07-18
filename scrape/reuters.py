@@ -30,17 +30,29 @@ def get_article_links(section_url, limit=30):
     res = session.get(section_url, headers=get_headers())
     print(res)
     soup = BeautifulSoup(res.text, "lxml")
-    anchors = soup.find_all("a", href=True)
+
+    header = soup.find(class_="site-header__main-bar__3jof3")
+    if header:
+        header_links = {
+            BASE_URL.rstrip("/") + a["href"] for a in header.find_all("a", href=True)
+        }
+    else:
+        header_links = set()
 
     links = []
-    for a in anchors:
+    for a in soup.find_all("a", href=True):
         href = a["href"]
         if href.startswith("/"):
             full_url = BASE_URL.rstrip("/") + href
-            if full_url not in links and "/video/" not in full_url:
+            if (
+                full_url not in links
+                and full_url not in header_links
+                and "/video/" not in full_url
+            ):
                 links.append(full_url)
         if len(links) >= limit:
             break
+
     return links
 
 
@@ -49,9 +61,17 @@ def scrape_article(url):
     res = session.get(url, headers=get_headers())
     soup = BeautifulSoup(res.text, "lxml")
     title_tag = soup.find("h1")
-    paragraphs = soup.find_all("p")
-
     title = title_tag.text.strip() if title_tag else "No title"
-    content = " ".join(p.text.strip() for p in paragraphs)
+    paragraph_divs = soup.select('div[data-testid^="paragraph-"]')
 
-    return {"url": url, "title": title, "content": content}
+    # Optional: skip if article is malformed
+    if not paragraph_divs:
+        raise ValueError("No article paragraph content found.")
+
+    content = " ".join(div.get_text(strip=True) for div in paragraph_divs)
+
+    return {
+        "url": url,
+        "title": title,
+        "content": content,
+    }

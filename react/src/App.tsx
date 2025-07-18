@@ -50,7 +50,7 @@ function App() {
               </h2>
             </a>
             <p style={{ fontSize: "0.9rem", color: "#333" }}>
-              {article.content.slice(0, 200)}...
+              {article.content.slice(0, 1000)}...
             </p>
             <p style={{ fontSize: "0.8rem", color: "#666" }}>
               <strong>Category:</strong>{" "}
